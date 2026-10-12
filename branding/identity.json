@@ -1,0 +1,24 @@
+{
+  "name": "CF Link",
+  "full_name": "CF Link Full",
+  "qs_name": "CF Link QS",
+  "company": "CF Tecnologia",
+  "concept": "Dois elos angulares ligados, com referência às letras C e F. Conexão e suporte com uma identidade própria.",
+  "palette": {
+    "violet": "#7C3AED",
+    "cyan": "#22D3EE",
+    "graphite": "#111827",
+    "surface": "#1F2937",
+    "text": "#F9FAFB",
+    "success": "#059669"
+  },
+  "typography": "Assinatura visual em sans-serif geométrica; tipografia Flutter na interface",
+  "symbol": "cf-link-symbol.png",
+  "windows_icon": "cf-link.ico",
+  "wordmark": "cf-link-wordmark.png",
+  "wordmark_prompt": "Create a clean horizontal application logo for CF Link. Use the supplied reference symbol on the left, retaining its violet #7C3AED and cyan #22D3EE flat shapes. To its right place exact text 'CF Link' in BLACK #111827, bold clean Segoe UI-style sans serif. Black lettering must be solid opaque with smooth geometric outlines. Actual transparent background. Single logo lockup with no extra words. Wide 3:1 layout, icon same height as capital letters. Pristine crisp vector-like rasterization: NO texture, no distressed effect, no speckles, no outlines, no white lettering, no gradients, no shadows, no mockup.",
+  "generation": {
+    "tool": "image_gen built-in",
+    "prompt": "Use case: logo-brand. Create a production application icon for 'CF Link', remote support software by CF Tecnologia. One single symbol centered on a transparent canvas, no text. Flat crisp geometric vector-like mark combining two interlocked angular links that subtly suggest a C and an F, compact readable silhouette at 24 px. Primary saturated violet #7C3AED and bright cyan #22D3EE. Precise simple bold shapes, consistent thickness, restrained modern technology identity. No padlock, no shield, no arrows, no gradients, no shadows, no 3D, no metallic textures, no mockup, no wordmark, no background. Square composition with generous transparent margins, icon mark takes 75 percent of width."
+  }
+}
