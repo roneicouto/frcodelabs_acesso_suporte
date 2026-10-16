@@ -43,7 +43,7 @@ try {
         Copy-Item -LiteralPath LICENCE -Destination "$Bundle\LICENCE.txt" -Force
         Copy-Item -LiteralPath "$TaskRoot\docs\NOTICE.txt" -Destination $Bundle -Force
         Invoke-BuildStep 'python' @('libs/portable/generate.py', '-f', $Bundle, '-o', 'libs/portable', '-e', "$Bundle\$AppName.exe", '-l', '6')
-        $PackageName = if ($CurrentProfile -eq 'qs') { "CFLinkQS-$($ClientConfig.version).exe" } else { "CFLink-$($ClientConfig.version)-install.exe" }
+        $PackageName = if ($CurrentProfile -eq 'qs') { "$AppName-$($ClientConfig.version).exe" } else { "$AppName-$($ClientConfig.version)-install.exe" }
         Copy-Item -LiteralPath target\release\rustdesk-portable-packer.exe -Destination "$TaskRoot\dist\windows\$PackageName" -Force
         Get-FileHash -LiteralPath "$TaskRoot\dist\windows\$PackageName" -Algorithm SHA256 | Format-List
     }

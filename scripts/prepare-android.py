@@ -12,7 +12,7 @@ config = json.loads((ROOT / "config/client.json").read_text(encoding="utf-8"))
 package = config[f"android_{args.profile}_package"]
 manifest = SOURCE / "flutter/android/app/src/main/AndroidManifest.xml"
 text = manifest.read_text(encoding="utf-8")
-label = "CF Link QS" if args.profile == "qs" else "CF Link"
+label = "FR CODE LABS QS" if args.profile == "qs" else "FR CODE LABS"
 text, count = re.subn(r'android:label="[^"]+"', f'android:label="{label}"', text, count=1)
 if count != 1:
     raise RuntimeError("Android application label not found")
@@ -32,9 +32,9 @@ replace_once(service, '    override fun onTaskRemoved(rootIntent: Intent?) {', '
             android.os.Process.killProcess(android.os.Process.myPid())
             return
         }''')
-replace_once(service, 'const val DEFAULT_NOTIFY_TITLE = "RustDesk"', 'const val DEFAULT_NOTIFY_TITLE = "CF Link"')
-replace_once(service, 'val channelName = "RustDesk Service"', 'val channelName = "CF Link"')
-replace_once(service, 'description = "RustDesk Service Channel"', 'description = "Suporte remoto CF Link"')
+replace_once(service, 'const val DEFAULT_NOTIFY_TITLE = "RustDesk"', 'const val DEFAULT_NOTIFY_TITLE = "FR CODE LABS"')
+replace_once(service, 'val channelName = "RustDesk Service"', 'val channelName = "FR CODE LABS"')
+replace_once(service, 'description = "RustDesk Service Channel"', 'description = "Suporte remoto FR CODE LABS"')
 boot = SOURCE / "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/BootReceiver.kt"
 replace_once(boot, '    override fun onReceive(context: Context, intent: Intent) {', f'''    override fun onReceive(context: Context, intent: Intent) {{
         if (context.packageName == "{config['android_qs_package']}") return''')

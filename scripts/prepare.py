@@ -1,4 +1,4 @@
-"""Apply the CF Link overlay to the pinned RustDesk source without resetting files."""
+"""Apply the FR CODE LABS overlay to the pinned RustDesk source without resetting files."""
 import base64
 import json
 import shutil
@@ -48,17 +48,17 @@ def main():
     write_if_changed(SOURCE / "src/cf_link.rs", (ROOT / "scripts/cf_link.rs").read_text(encoding="utf-8"))
     replace_once(SOURCE / "Cargo.toml", "[features]\n", "[features]\ncf-full = []\ncf-qs = []\n")
     replace_once(SOURCE / "build.rs", '    #[cfg(windows)]\n    build_windows();', '    #[cfg(windows)]\n    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {\n        build_windows();\n    }')
-    replace_once(SOURCE / "src/lib.rs", "mod custom_server;", "mod custom_server;\n#[cfg(any(feature = \"cf-full\", feature = \"cf-qs\"))]\nmod cf_link;\n#[cfg(any(feature = \"cf-full\", feature = \"cf-qs\"))]\nmod cf_link_config;\n#[cfg(all(feature = \"cf-full\", feature = \"cf-qs\"))]\ncompile_error!(\"Build CF Link Full and QS separately\");")
+    replace_once(SOURCE / "src/lib.rs", "mod custom_server;", "mod custom_server;\n#[cfg(any(feature = \"cf-full\", feature = \"cf-qs\"))]\nmod cf_link;\n#[cfg(any(feature = \"cf-full\", feature = \"cf-qs\"))]\nmod cf_link_config;\n#[cfg(all(feature = \"cf-full\", feature = \"cf-qs\"))]\ncompile_error!(\"Build FR CODE LABS Full and QS separately\");")
     for signature in ["pub fn global_init() -> bool {", "pub fn load_custom_client() {", "pub fn read_custom_client(config: &str) {"]:
         hook = "\n    #[cfg(any(feature = \"cf-full\", feature = \"cf-qs\"))]\n    crate::cf_link::init();"
         if signature != "pub fn global_init() -> bool {":
             hook = "\n    #[cfg(any(feature = \"cf-full\", feature = \"cf-qs\"))]\n    {\n        crate::cf_link::init();\n        return;\n    }"
         replace_once(SOURCE / "src/common.rs", signature, signature + hook)
-    replace_once(SOURCE / "src/platform/windows.rs", "pub fn get_license_from_exe_name() -> ResultType<CustomServer> {", "pub fn get_license_from_exe_name() -> ResultType<CustomServer> {\n    #[cfg(any(feature = \"cf-full\", feature = \"cf-qs\"))]\n    bail!(\"CF Link server configuration is embedded\");")
-    replace_once(SOURCE / "src/platform/windows.rs", "pub fn install_me(options: &str, path: String, silent: bool, debug: bool) -> ResultType<()> {", "pub fn install_me(options: &str, path: String, silent: bool, debug: bool) -> ResultType<()> {\n    #[cfg(feature = \"cf-qs\")]\n    bail!(\"CF Link QS is portable and cannot be installed\");")
+    replace_once(SOURCE / "src/platform/windows.rs", "pub fn get_license_from_exe_name() -> ResultType<CustomServer> {", "pub fn get_license_from_exe_name() -> ResultType<CustomServer> {\n    #[cfg(any(feature = \"cf-full\", feature = \"cf-qs\"))]\n    bail!(\"FR CODE LABS server configuration is embedded\");")
+    replace_once(SOURCE / "src/platform/windows.rs", "pub fn install_me(options: &str, path: String, silent: bool, debug: bool) -> ResultType<()> {", "pub fn install_me(options: &str, path: String, silent: bool, debug: bool) -> ResultType<()> {\n    #[cfg(feature = \"cf-qs\")]\n    bail!(\"FR CODE LABS QS is portable and cannot be installed\");")
     replace_once(SOURCE / "src/platform/windows.rs", "pub fn install_service() -> bool {", "pub fn install_service() -> bool {\n    #[cfg(feature = \"cf-qs\")]\n    return false;")
     replace_once(SOURCE / "src/platform/macos.rs", "pub fn is_installed_daemon(prompt: bool) -> bool {", "pub fn is_installed_daemon(prompt: bool) -> bool {\n    #[cfg(feature = \"cf-qs\")]\n    return false;")
-    replace_once(SOURCE / "src/platform/macos.rs", "pub fn write_plists() -> ResultType<()> {", "pub fn write_plists() -> ResultType<()> {\n    #[cfg(feature = \"cf-qs\")]\n    bail!(\"CF Link QS does not install background services\");")
+    replace_once(SOURCE / "src/platform/macos.rs", "pub fn write_plists() -> ResultType<()> {", "pub fn write_plists() -> ResultType<()> {\n    #[cfg(feature = \"cf-qs\")]\n    bail!(\"FR CODE LABS QS does not install background services\");")
     replace_once(SOURCE / "src/service.rs", '#[cfg(target_os = "macos")]\nfn main() {', '#[cfg(target_os = "macos")]\nfn main() {\n    #[cfg(any(feature = "cf-full", feature = "cf-qs"))]\n    crate::common::load_custom_client();')
     replace_once(SOURCE / "src/client.rs", '        if config::is_incoming_only() && !is_switch_sides_back(conn_type, &interface).await {', '        #[cfg(any(feature = "cf-full", feature = "cf-qs"))]\n        crate::cf_link::validate_peer(peer, interface.get_lch().read().unwrap().other_server.is_some())?;\n        if config::is_incoming_only() && !is_switch_sides_back(conn_type, &interface).await {')
     replace_once(SOURCE / "src/flutter_ffi.rs", '        log::debug!("startServer from jvm");', '        #[cfg(any(feature = "cf-full", feature = "cf-qs"))]\n        crate::cf_link::init();\n        log::debug!("startServer from jvm");')
@@ -70,11 +70,11 @@ def main():
       return;
     }''')
     colors = {
-        'Color(0xFF0071FF)': 'Color(0xFF7C3AED)',
-        'Color(0x770071FF)': 'Color(0x777C3AED)',
-        'Color(0xAA0071FF)': 'Color(0xAA7C3AED)',
-        'Color(0xFF00B6F0)': 'Color(0xFF0891B2)',
-        'static const Color button = Color(0xFF2C8CFF);': 'static const Color button = Color(0xFF7C3AED);',
+        'Color(0xFF0071FF)': 'Color(0xFF306BEB)',
+        'Color(0x770071FF)': 'Color(0x77306BEB)',
+        'Color(0xAA0071FF)': 'Color(0xAA306BEB)',
+        'Color(0xFF00B6F0)': 'Color(0xFF06D0D7)',
+        'static const Color button = Color(0xFF2C8CFF);': 'static const Color button = Color(0xFF306BEB);',
         'static const Color canvasColor = Color(0xFF212121);': 'static const Color canvasColor = Color(0xFF111827);',
     }
     for old, new in colors.items():
@@ -87,11 +87,10 @@ Widget loadPowered(BuildContext context) {
   if (MyTheme.isDarkOnly) return const SizedBox.shrink();''')
     replace_once(SOURCE / "flutter/lib/desktop/pages/desktop_home_page.dart", '      if (!isOutgoingOnly) buildPasswordBoard(context),', '      if (!isOutgoingOnly) buildPasswordBoard(context),\n      if (MyTheme.isDarkOnly) Center(child: cfLegalLink(context)),')
     replace_once(SOURCE / "flutter/lib/mobile/pages/server_page.dart", '                        buildPresetPasswordWarningMobile(),', '                        if (MyTheme.isDarkOnly) cfLegalLink(context),\n                        buildPresetPasswordWarningMobile(),')
-    # The existing assets/ directory is declared in pubspec.yaml.
     legal_info = {
         "product": config["product"], "company": config["company"],
         "version": config["version"], "base": config["upstream_tag"],
-        "source_archive": f"CFLink-{config['version']}-source.zip",
+        "source_archive": f"FRCodeLabs-{config['version']}-source.zip",
     }
     write_if_changed(SOURCE / "flutter/assets/cf_legal.json", json.dumps(legal_info, ensure_ascii=False, indent=2) + "\n")
     write_if_changed(SOURCE / "flutter/assets/cf_notice.txt", (ROOT / "docs/NOTICE.txt").read_text(encoding="utf-8"))
@@ -118,23 +117,23 @@ Widget loadPowered(BuildContext context) {
     loadIcon(40),
     const SizedBox(width: 10),
     Flexible(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(bind.isIncomingOnly() ? 'CF Link QS' : 'CF Link',
+      Text(bind.isIncomingOnly() ? 'FR CODE LABS QS' : 'FR CODE LABS',
         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-      const Text('CF Tecnologia', style: TextStyle(fontSize: 11)),
+      const Text('FR CODE LABS', style: TextStyle(fontSize: 11)),
     ])),
   ]),
 );''')
     rc = SOURCE / "flutter/windows/runner/Runner.rc"
-    replace_once(rc, 'VALUE "CompanyName", "Purslane Tech Pte. Ltd."', 'VALUE "CompanyName", "CF Tecnologia"')
-    replace_once(rc, 'VALUE "FileDescription", "RustDesk Remote Desktop"', 'VALUE "FileDescription", "CF Link - Suporte remoto"')
-    replace_once(rc, 'VALUE "ProductName", "RustDesk"', 'VALUE "ProductName", "CF Link"')
+    replace_once(rc, 'VALUE "CompanyName", "Purslane Tech Pte. Ltd."', 'VALUE "CompanyName", "FR CODE LABS"')
+    replace_once(rc, 'VALUE "FileDescription", "RustDesk Remote Desktop"', 'VALUE "FileDescription", "FR CODE LABS - Suporte remoto"')
+    replace_once(rc, 'VALUE "ProductName", "RustDesk"', 'VALUE "ProductName", "FR CODE LABS"')
     portable = SOURCE / "libs/portable/Cargo.toml"
-    replace_once(portable, 'ProductName = "RustDesk"', 'ProductName = "CF Link"')
-    replace_once(portable, 'FileDescription = "RustDesk Remote Desktop"', 'FileDescription = "CF Link - Suporte remoto"')
+    replace_once(portable, 'ProductName = "RustDesk"', 'ProductName = "FR CODE LABS"')
+    replace_once(portable, 'FileDescription = "RustDesk Remote Desktop"', 'FileDescription = "FR CODE LABS - Suporte remoto"')
     replace_once(SOURCE / "libs/portable/src/ui.rs", 'const BG_COLOR: [u8; 3] = [90, 90, 120];', 'const BG_COLOR: [u8; 3] = [249, 250, 251];')
     for asset in ["icon.png", "logo.png", "logo_light.png", "logo_dark.png"]:
         shutil.copyfile(ROOT / "branding/cf-link-symbol.png", SOURCE / "flutter/assets" / asset)
-    print(f"CF Link prepared from RustDesk {tag}; server and public key embedded.")
+    print(f"FR CODE LABS prepared from RustDesk {tag}; server and public key embedded.")
 
 
 if __name__ == "__main__":

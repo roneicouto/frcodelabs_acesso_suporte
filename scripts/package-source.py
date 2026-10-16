@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "upstream"
 config = json.loads((ROOT / "config/client.json").read_text(encoding="utf-8"))
-output = ROOT / "dist" / f"CFLink-{config['version']}-source.zip"
+output = ROOT / "dist" / f"{config.get('full_app_name', 'FRCodeLabs')}-{config['version']}-source.zip"
 output.parent.mkdir(parents=True, exist_ok=True)
 
 
@@ -27,6 +27,6 @@ temporary = output.with_suffix(".tmp.zip")
 with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6, strict_timestamps=False) as archive:
     for file in sorted(files):
         if file.is_file():
-            archive.write(file, "cf-link/" + file.relative_to(ROOT).as_posix())
+            archive.write(file, "fr-code-labs/" + file.relative_to(ROOT).as_posix())
 temporary.replace(output)
 print(f"Corresponding project source: {output}")

@@ -1,10 +1,10 @@
-CF Link / CF Link QS - CF Tecnologia
-Versão da personalização: 1.0.2
+FR CODE LABS / FR CODE LABS QS - FR CODE LABS
+Versão da personalização: 1.0.0
 Base: RustDesk 1.5.0, https://github.com/rustdesk/rustdesk/tree/1.5.0
 
 Este aplicativo é uma versão modificada de RustDesk. Os créditos e a licença
 GNU Affero General Public License versão 3 da base foram preservados.
-O logotipo e a identidade CF Link foram criados para a CF Tecnologia.
+O logotipo e a identidade visual foram criados para FR CODE LABS.
 Os direitos dos autores de RustDesk e de suas dependências permanecem preservados.
 
 Servidor ID: 179.198.111.247:21116
@@ -12,7 +12,7 @@ Relay: 179.198.111.247:21117
 Não há chave privada do servidor incorporada ao aplicativo.
 
 As configurações de servidor são fixas nesta compilação. Para alterar o servidor,
-é necessário gerar e distribuir uma nova versão da CF Link.
+é necessário gerar e distribuir uma nova versão da FR CODE LABS.
 Full: pode iniciar e receber conexões; senha ou aprovação.
 QS: apenas recebe conexões, por senha temporária ou aprovação local, sem instalação permanente.
 Interface Full/QS: tema dark fixo.

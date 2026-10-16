@@ -22,7 +22,7 @@ if not keystore.exists():
         "-genkeypair", "-storetype", "JKS", "-keyalg", "RSA", "-keysize", "3072",
         "-validity", "10000", "-alias", "cf-link", "-keystore", str(keystore),
         "-storepass:env", "TASK_ANDROID_SIGNING_PASSWORD", "-keypass:env", "TASK_ANDROID_SIGNING_PASSWORD",
-        "-dname", "CN=CF Link, O=CF Tecnologia, C=BR",
+        "-dname", "CN=FR CODE LABS, O=FR CODE LABS, C=BR",
     ], env=environment, check=True)
 properties = ROOT / "upstream/flutter/android/key.properties"
 properties.write_text(

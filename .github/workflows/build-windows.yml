@@ -1,0 +1,62 @@
+name: Build Windows (FR CODE LABS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Perfil de compilação'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - full
+          - qs
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Windows Setup
+        shell: powershell
+        run: |
+          .\scripts\setup-windows.ps1
+
+      - name: Build Windows Executables
+        shell: powershell
+        run: |
+          .\scripts\build-windows.ps1 -Profile ${{ github.event.inputs.profile || 'both' }}
+
+      - name: Verify Windows Binaries
+        shell: powershell
+        run: |
+          python .\scripts\verify-windows.py
+
+      - name: Package Source Code (AGPL Compliance)
+        shell: powershell
+        run: |
+          python .\scripts\package-source.py
+          python .\scripts\release-manifest.py
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fr-code-labs-windows
+          path: |
+            dist/windows/*.exe
+            dist/*-source.zip
+            dist/SHA256SUMS.txt
+            dist/release-manifest.json

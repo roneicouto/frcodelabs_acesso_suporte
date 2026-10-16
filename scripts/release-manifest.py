@@ -11,7 +11,7 @@ for pattern in ["windows/*.exe", "android/*.apk", "macos/*.dmg", "*.zip"]:
     for file in sorted((ROOT / "dist").glob(pattern)):
         with file.open("rb") as stream:
             digest = hashlib.file_digest(stream, "sha256").hexdigest()
-        version = re.search(r'CFLink(?:QS)?-(\d+\.\d+\.\d+)', file.name)
+        version = re.search(rf"{re.escape(config.get('full_app_name', 'FRCodeLabs'))}(?:QS)?-(\d+\.\d+\.\d+)", file.name)
         artifacts.append({"file": file.relative_to(ROOT / "dist").as_posix(), "customization_version": version.group(1) if version else None, "bytes": file.stat().st_size, "sha256": digest})
 manifest = {
     "product": config["product"],

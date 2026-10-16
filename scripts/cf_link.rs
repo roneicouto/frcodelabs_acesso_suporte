@@ -89,7 +89,7 @@ pub fn validate_peer(peer: &str, has_other_server: bool) -> ResultType<()> {
         bail!("Incoming only mode");
     }
     if has_other_server || hbb_common::is_ip_str(peer) || hbb_common::is_domain_port_str(peer) {
-        bail!("CF Link only connects to IDs on the company server");
+        bail!("FR CODE LABS only connects to IDs on the company server");
     }
     Ok(())
 }

@@ -21,9 +21,10 @@ def inspect_profile(profile):
         library.free_c_args(arguments, count)
     name = ctypes.create_unicode_buffer(256)
     library.get_rustdesk_app_name.argtypes = [ctypes.c_wchar_p, ctypes.c_int]
-    assert library.get_rustdesk_app_name(name, 256) == 0
-    expected = "CFLinkQS" if profile == "qs" else "CFLink"
-    assert name.value == expected, name.value
+    import json
+    cfg = json.loads((ROOT / "config/client.json").read_text(encoding="utf-8"))
+    expected = cfg["qs_app_name"] if profile == "qs" else cfg["full_app_name"]
+    assert name.value == expected, f"Expected {expected}, got {name.value}"
     disabled = library.rustdesk_is_disable_installation()
     assert disabled == int(profile == "qs"), disabled
     result = subprocess.run([str(folder / f"{expected}.exe"), "--version"], capture_output=True, text=True, timeout=20)
