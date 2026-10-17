@@ -32,6 +32,12 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Enable Git long paths on Windows
+        shell: powershell
+        run: |
+          git config --system core.longpaths true
+          git config --global core.longpaths true
+
       - name: Configure System LLVM
         shell: powershell
         run: |
