@@ -29,12 +29,30 @@ if (-not (Test-Path .tools\vcpkg\.git)) {
     Invoke-SetupStep 'git' @('-C', '.tools/vcpkg', 'checkout', '9e593bb18ea69cc5095e012465dcd675a822ed0d')
     Invoke-SetupStep '.\.tools\vcpkg\bootstrap-vcpkg.bat' @('-disableMetrics')
 }
-Invoke-SetupStep 'python' @('-m', 'pip', 'install', 'pillow==12.3.0', 'libclang==18.1.1', 'clang==18.1.1', 'brotli==1.2.0')
+Invoke-SetupStep 'python' @('-m', 'pip', 'install', 'pillow==12.3.0', 'libclang==18.1.1', 'brotli==1.2.0')
 . "$PSScriptRoot\env.ps1"
 New-Item -ItemType Directory -Force .tools\llvm\bin | Out-Null
 New-Item -ItemType Directory -Force .tools\llvm\lib | Out-Null
 $FoundLibClang = $null
-if ($env:LIBCLANG_PATH -and (Test-Path "$env:LIBCLANG_PATH\libclang.dll")) {
+$PyDll = python -c "import sys, pathlib
+found = ''
+for p in sys.path:
+    cand = pathlib.Path(p) / 'libclang' / 'libclang.dll'
+    if cand.is_file():
+        found = str(cand)
+        break
+    cand2 = pathlib.Path(p) / 'clang' / 'native' / 'libclang.dll'
+    if cand2.is_file():
+        found = str(cand2)
+        break
+if not found and (pathlib.Path('C:/Program Files/LLVM/bin/libclang.dll').is_file()):
+    found = 'C:/Program Files/LLVM/bin/libclang.dll'
+print(found)
+" 2>$null
+
+if ($PyDll -and (Test-Path $PyDll)) {
+    $FoundLibClang = $PyDll
+} elseif ($env:LIBCLANG_PATH -and (Test-Path "$env:LIBCLANG_PATH\libclang.dll")) {
     $FoundLibClang = "$env:LIBCLANG_PATH\libclang.dll"
 } elseif (Test-Path 'C:\Program Files\LLVM\bin\libclang.dll') {
     $FoundLibClang = 'C:\Program Files\LLVM\bin\libclang.dll'
