@@ -21,6 +21,7 @@ def inspect_profile(profile):
         library.free_c_args(arguments, count)
     name = ctypes.create_unicode_buffer(256)
     library.get_rustdesk_app_name.argtypes = [ctypes.c_wchar_p, ctypes.c_int]
+    assert library.get_rustdesk_app_name(name, 256) == 0
     import json
     cfg = json.loads((ROOT / "config/client.json").read_text(encoding="utf-8"))
     expected = cfg["qs_app_name"] if profile == "qs" else cfg["full_app_name"]
