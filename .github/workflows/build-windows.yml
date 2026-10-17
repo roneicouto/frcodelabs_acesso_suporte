@@ -13,6 +13,8 @@ on:
           - full
           - qs
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
