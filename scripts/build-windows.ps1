@@ -21,7 +21,17 @@ Push-Location upstream
 try {
     if (-not $SkipBridge) {
         $env:RUST_LOG = 'info'
-        Invoke-BuildStep 'flutter_rust_bridge_codegen' @('--rust-input', 'src/flutter_ffi.rs', '--dart-output', 'flutter/lib/generated_bridge.dart', '--c-output', 'flutter/macos/Runner/bridge_generated.h', '--llvm-path', "$TaskRoot\.tools\llvm")
+        $env:RUST_BACKTRACE = '1'
+        $LlvmArg = if (Test-Path "$TaskRoot\.tools\llvm\bin\libclang.dll") {
+            "$TaskRoot\.tools\llvm"
+        } elseif (Test-Path 'C:\Program Files\LLVM\bin\libclang.dll') {
+            'C:\Program Files\LLVM'
+        } elseif ($env:LIBCLANG_PATH -and (Test-Path "$env:LIBCLANG_PATH\libclang.dll")) {
+            Split-Path $env:LIBCLANG_PATH -Parent
+        } else {
+            "$TaskRoot\.tools\llvm"
+        }
+        Invoke-BuildStep 'flutter_rust_bridge_codegen' @('--rust-input', 'src/flutter_ffi.rs', '--dart-output', 'flutter/lib/generated_bridge.dart', '--c-output', 'flutter/macos/Runner/bridge_generated.h', '--llvm-path', $LlvmArg)
         Copy-Item -LiteralPath flutter\macos\Runner\bridge_generated.h -Destination flutter\ios\Runner\bridge_generated.h
     }
     $Profiles = if ($BuildProfile -eq 'both') { @('full', 'qs') } else { @($BuildProfile) }

@@ -18,6 +18,7 @@ if (-not (Test-Path .tools\cargo\bin\rustup.exe)) {
 }
 Invoke-SetupStep 'rustup' @('toolchain', 'install', '1.81.0', '--profile', 'minimal')
 Invoke-SetupStep 'rustup' @('component', 'add', 'rustfmt', '--toolchain', '1.75.0')
+Invoke-SetupStep 'rustup' @('component', 'add', 'rustfmt', '--toolchain', '1.81.0')
 Invoke-SetupStep 'cargo' @('+1.81.0', 'install', 'cargo-expand', '--version', '1.0.95', '--locked')
 Invoke-SetupStep 'cargo' @('+1.81.0', 'install', 'flutter_rust_bridge_codegen', '--version', '1.80.1', '--features', 'uuid', '--locked')
 if (-not (Test-Path .tools\flutter\.git)) {
@@ -28,10 +29,24 @@ if (-not (Test-Path .tools\vcpkg\.git)) {
     Invoke-SetupStep 'git' @('-C', '.tools/vcpkg', 'checkout', '9e593bb18ea69cc5095e012465dcd675a822ed0d')
     Invoke-SetupStep '.\.tools\vcpkg\bootstrap-vcpkg.bat' @('-disableMetrics')
 }
-Invoke-SetupStep 'python' @('-m', 'pip', 'install', 'pillow==12.3.0', 'libclang==18.1.1', 'brotli==1.2.0')
+Invoke-SetupStep 'python' @('-m', 'pip', 'install', 'pillow==12.3.0', 'libclang==18.1.1', 'clang==18.1.1', 'brotli==1.2.0')
 . "$PSScriptRoot\env.ps1"
 New-Item -ItemType Directory -Force .tools\llvm\bin | Out-Null
-Copy-Item -LiteralPath "$env:LIBCLANG_PATH\libclang.dll" -Destination .tools\llvm\bin\libclang.dll -Force
+New-Item -ItemType Directory -Force .tools\llvm\lib | Out-Null
+$FoundLibClang = $null
+if ($env:LIBCLANG_PATH -and (Test-Path "$env:LIBCLANG_PATH\libclang.dll")) {
+    $FoundLibClang = "$env:LIBCLANG_PATH\libclang.dll"
+} elseif (Test-Path 'C:\Program Files\LLVM\bin\libclang.dll') {
+    $FoundLibClang = 'C:\Program Files\LLVM\bin\libclang.dll'
+}
+if ($FoundLibClang) {
+    Copy-Item -LiteralPath $FoundLibClang -Destination .tools\llvm\bin\libclang.dll -Force
+    Copy-Item -LiteralPath $FoundLibClang -Destination .tools\llvm\lib\libclang.dll -Force
+    Copy-Item -LiteralPath $FoundLibClang -Destination .tools\llvm\libclang.dll -Force
+    Write-Host "Configured LLVM libclang from: $FoundLibClang"
+} else {
+    Write-Warning "libclang.dll not found during setup!"
+}
 Invoke-SetupStep 'python' @('scripts/prepare.py')
 Invoke-SetupStep 'python' @('scripts/export-icons.py')
 Invoke-SetupStep 'python' @('scripts/prepare-tools.py')

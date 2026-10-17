@@ -16,5 +16,46 @@ if (Test-Path 'C:\Program Files\Microsoft Visual Studio\18\Community') {
 }
 $env:FLUTTER_SUPPRESS_ANALYTICS = 'true'
 $env:RUSTUP_TOOLCHAIN = '1.75.0'
-$ClangRoot = python -c "import importlib.util, pathlib; spec = importlib.util.find_spec('clang'); print(pathlib.Path(spec.origin).parent / 'native' if spec else '')"
-if ($ClangRoot) { $env:LIBCLANG_PATH = $ClangRoot }
+
+# Localização resiliente de libclang / LLVM
+$ClangCandidates = @()
+try {
+    $PyClang = python -c "import sys, pathlib
+candidates = []
+try:
+    import libclang
+    candidates.append(str(pathlib.Path(libclang.__file__).parent))
+except Exception:
+    pass
+try:
+    import clang
+    candidates.append(str(pathlib.Path(clang.__file__).parent / 'native'))
+except Exception:
+    pass
+for p in sys.path:
+    candidates.append(str(pathlib.Path(p) / 'libclang'))
+    candidates.append(str(pathlib.Path(p) / 'clang/native'))
+for c in candidates:
+    p = pathlib.Path(c)
+    if (p / 'libclang.dll').is_file():
+        print(p)
+        break
+" 2>$null
+    if ($PyClang -and (Test-Path "$PyClang\libclang.dll")) {
+        $ClangCandidates += $PyClang
+    }
+} catch {}
+
+if (Test-Path 'C:\Program Files\LLVM\bin\libclang.dll') {
+    $ClangCandidates += 'C:\Program Files\LLVM\bin'
+}
+if (Test-Path "$TaskRoot\.tools\llvm\bin\libclang.dll") {
+    $ClangCandidates += "$TaskRoot\.tools\llvm\bin"
+}
+if (Test-Path "$TaskRoot\.tools\llvm\libclang.dll") {
+    $ClangCandidates += "$TaskRoot\.tools\llvm"
+}
+
+if ($ClangCandidates.Count -gt 0) {
+    $env:LIBCLANG_PATH = $ClangCandidates[0]
+}
