@@ -35,6 +35,10 @@ jobs:
       - name: Install macOS build dependencies
         run: |
           brew install autoconf autoconf-archive automake libtool cmake ninja pkg-config llvm nasm yasm
+          sudo ln -sf "$(brew --prefix libtool)/bin/glibtoolize" /opt/homebrew/bin/libtoolize 2>/dev/null || true
+          sudo ln -sf "$(brew --prefix libtool)/bin/glibtoolize" /usr/local/bin/libtoolize 2>/dev/null || true
+          echo "/opt/homebrew/opt/libtool/libexec/gnubin" >> $GITHUB_PATH
+          echo "ACLOCAL_PATH=$(brew --prefix)/share/aclocal" >> $GITHUB_ENV
 
       - name: Run macOS Setup
         run: |

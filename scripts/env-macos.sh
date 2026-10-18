@@ -4,7 +4,17 @@ task_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export CARGO_HOME="$task_root/.tools/cargo"
 export RUSTUP_HOME="$task_root/.tools/rustup"
 export RUSTUP_TOOLCHAIN="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["rust_macos"])' "$task_root/config/source-lock.json")"
-export PATH="$task_root/.tools/python/bin:$CARGO_HOME/bin:$task_root/.tools/flutter/bin:$PATH"
+
+brew_prefix="$(brew --prefix 2>/dev/null || echo '/opt/homebrew')"
+mkdir -p "$task_root/.tools/bin"
+if command -v glibtoolize >/dev/null 2>&1; then
+  ln -sf "$(command -v glibtoolize)" "$task_root/.tools/bin/libtoolize"
+elif [[ -x "$brew_prefix/bin/glibtoolize" ]]; then
+  ln -sf "$brew_prefix/bin/glibtoolize" "$task_root/.tools/bin/libtoolize"
+fi
+
+export PATH="$task_root/.tools/bin:$brew_prefix/opt/libtool/libexec/gnubin:$task_root/.tools/python/bin:$CARGO_HOME/bin:$task_root/.tools/flutter/bin:$PATH"
+export ACLOCAL_PATH="$brew_prefix/share/aclocal:${ACLOCAL_PATH:-}"
 export VCPKG_ROOT="$task_root/.tools/vcpkg"
 export VCPKG_DOWNLOADS="$task_root/.tools/downloads"
 export MACOSX_DEPLOYMENT_TARGET="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["macos_minimum"])' "$task_root/config/source-lock.json")"
