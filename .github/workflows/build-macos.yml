@@ -13,6 +13,8 @@ on:
           - full
           - qs
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
@@ -29,6 +31,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Install macOS build dependencies
+        run: |
+          brew install autoconf autoconf-archive automake libtool cmake ninja pkg-config llvm nasm yasm
 
       - name: Run macOS Setup
         run: |

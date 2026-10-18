@@ -8,7 +8,7 @@ xcodebuild -version >/dev/null || { echo 'Instale e abra o Xcode completo antes 
 if [[ "$(sysctl -in sysctl.proc_translated 2>/dev/null || true)" == 1 ]]; then
   echo 'Abra um Terminal nativo, fora do Rosetta, e execute novamente.' >&2; exit 1
 fi
-brew install python cmake ninja pkg-config llvm nasm yasm autoconf automake libtool cocoapods
+brew install python cmake ninja pkg-config llvm nasm yasm autoconf autoconf-archive automake libtool cocoapods
 mkdir -p .tools/downloads
 python3 scripts/bootstrap-source.py
 python3 -m venv .tools/python
