@@ -1,0 +1,115 @@
+name: Build macOS (FR CODE LABS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Perfil de compilação'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - full
+          - qs
+      publish_release:
+        description: 'Publicar automaticamente no repositório de releases (frcodelabs-releases)'
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-macos:
+    runs-on: macos-14
+    env:
+      FR_ID_SERVER: ${{ secrets.FR_ID_SERVER }}
+      FR_RELAY_SERVER: ${{ secrets.FR_RELAY_SERVER }}
+      FR_PUBLIC_KEY: ${{ secrets.FR_PUBLIC_KEY }}
+      FR_DEFAULT_PASSWORD: ${{ secrets.FR_DEFAULT_PASSWORD }}
+      FR_SECONDARY_PASSWORD: ${{ secrets.FR_SECONDARY_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install macOS build dependencies
+        run: |
+          brew install autoconf autoconf-archive automake libtool cmake ninja pkg-config llvm nasm yasm
+          sudo ln -sf "$(brew --prefix libtool)/bin/glibtoolize" /opt/homebrew/bin/libtoolize 2>/dev/null || true
+          sudo ln -sf "$(brew --prefix libtool)/bin/glibtoolize" /usr/local/bin/libtoolize 2>/dev/null || true
+          echo "/opt/homebrew/opt/libtool/libexec/gnubin" >> $GITHUB_PATH
+          echo "ACLOCAL_PATH=$(brew --prefix)/share/aclocal" >> $GITHUB_ENV
+
+      - name: Cache Rust, vcpkg and Cargo tools (macOS)
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tools/vcpkg
+            .tools/cargo/bin
+            .tools/cargo/registry/index
+            .tools/cargo/registry/cache
+            .tools/cargo/git/db
+            .tools/rustup
+          key: macos-tools-${{ hashFiles('config/source-lock.json', 'config/macos-vcpkg/vcpkg.json') }}
+
+      - name: Run macOS Setup
+        run: |
+          bash scripts/setup-macos.sh
+
+      - name: Build macOS DMGs
+        run: |
+          bash scripts/build-macos.sh ${{ github.event.inputs.profile || 'both' }}
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fr-code-labs-macos
+          path: |
+            dist/macos/*.dmg
+            dist/macos/*.sha256
+
+      - name: Publish to Public Releases Repository (frcodelabs-releases)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_release }}
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::warning::Secret RELEASES_TOKEN nao configurado; pulando publicacao automatica em frcodelabs-releases."
+            exit 0
+          fi
+          VERSION="$(python3 -c 'import json; print(json.load(open("config/client.json"))["version"])')"
+          UPSTREAM_TAG="$(python3 -c 'import json; print(json.load(open("config/client.json"))["upstream_tag"])')"
+          REPO="$(python3 -c 'import json; print(json.load(open("config/client.json"))["update_repository"])')"
+          TAG="v${VERSION}"
+          echo "Publishing macOS release ${TAG} to ${REPO}..."
+
+          if ! gh api "repos/${REPO}/commits?per_page=1" >/dev/null 2>&1; then
+            README_B64="$(printf '# FR CODE LABS — Releases Oficiais\n\nInstaladores e atualizações automáticas do cliente de suporte remoto **FR CODE LABS**.\n' | base64 | tr -d '\n')"
+            gh api --method PUT "repos/${REPO}/contents/README.md" -f message="Initial README" -f content="${README_B64}" >/dev/null
+          fi
+
+          if ! gh release view "${TAG}" --repo "${REPO}" >/dev/null 2>&1; then
+            gh release create "${TAG}" --repo "${REPO}" --title "FR CODE LABS ${VERSION}" --notes "Release oficial FR CODE LABS ${VERSION} (base RustDesk ${UPSTREAM_TAG})."
+          fi
+
+          for dmg in dist/macos/*.dmg; do
+            if [[ -f "$dmg" ]]; then
+              name="$(basename "$dmg")"
+              gh release upload "${TAG}" "${dmg}#${name} - ${TAG}" --repo "${REPO}" --clobber
+            fi
+          done

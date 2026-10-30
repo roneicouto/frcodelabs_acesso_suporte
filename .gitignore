@@ -1,0 +1,13 @@
+.tools/
+upstream/
+dist/
+__pycache__/
+*.pyc
+*.pfx
+*.p12
+*.jks
+*.keystore
+assets/id_ed25519
+assets/*private*
+.DS_Store
+**/key.properties

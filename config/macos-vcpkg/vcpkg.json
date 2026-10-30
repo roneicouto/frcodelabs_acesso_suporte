@@ -1,0 +1,11 @@
+{
+  "dependencies": ["aom", "libjpeg-turbo", "libvpx", "libyuv", "opus", "libsodium"],
+  "vcpkg-configuration": {
+    "default-registry": {
+      "kind": "builtin",
+      "baseline": "9e593bb18ea69cc5095e012465dcd675a822ed0d"
+    },
+    "overlay-ports": ["../../upstream/res/vcpkg"],
+    "overlay-triplets": ["../../upstream/res/vcpkg-triplets"]
+  }
+}

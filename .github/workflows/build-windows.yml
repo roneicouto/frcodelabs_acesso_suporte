@@ -1,0 +1,150 @@
+name: Build Windows (FR CODE LABS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Perfil de compilação'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - full
+          - qs
+      publish_release:
+        description: 'Publicar automaticamente no repositório de releases (frcodelabs-releases)'
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    env:
+      FR_ID_SERVER: ${{ secrets.FR_ID_SERVER }}
+      FR_RELAY_SERVER: ${{ secrets.FR_RELAY_SERVER }}
+      FR_PUBLIC_KEY: ${{ secrets.FR_PUBLIC_KEY }}
+      FR_DEFAULT_PASSWORD: ${{ secrets.FR_DEFAULT_PASSWORD }}
+      FR_SECONDARY_PASSWORD: ${{ secrets.FR_SECONDARY_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Enable Git long paths on Windows
+        shell: powershell
+        run: |
+          git config --system core.longpaths true
+          git config --global core.longpaths true
+
+      - name: Configure System LLVM
+        shell: powershell
+        run: |
+          if (Test-Path 'C:\Program Files\LLVM\bin') {
+            echo "C:\Program Files\LLVM\bin" >> $env:GITHUB_PATH
+            echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> $env:GITHUB_ENV
+          }
+
+      - name: Cache Rust, vcpkg and Cargo tools (Windows)
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tools/vcpkg
+            .tools/cargo/bin
+            .tools/cargo/registry/index
+            .tools/cargo/registry/cache
+            .tools/cargo/git/db
+            .tools/rustup
+          key: win-tools-${{ hashFiles('config/source-lock.json') }}
+
+      - name: Run Windows Setup
+        shell: powershell
+        run: |
+          .\scripts\setup-windows.ps1
+
+      - name: Build Windows Executables
+        shell: powershell
+        run: |
+          .\scripts\build-windows.ps1 -Profile ${{ github.event.inputs.profile || 'both' }}
+
+      - name: Verify Windows Binaries
+        shell: powershell
+        run: |
+          python .\scripts\verify-windows.py
+
+      - name: Package Source Code (AGPL Compliance)
+        shell: powershell
+        run: |
+          python .\scripts\package-source.py
+          python .\scripts\release-manifest.py
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fr-code-labs-windows
+          path: |
+            dist/windows/*.exe
+            dist/*-source.zip
+            dist/SHA256SUMS.txt
+            dist/release-manifest.json
+
+      - name: Publish to Public Releases Repository (frcodelabs-releases)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_release }}
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        shell: pwsh
+        run: |
+          if (-not $env:GH_TOKEN) {
+            Write-Warning "Secret RELEASES_TOKEN nao configurado; pulando publicacao automatica em frcodelabs-releases."
+            exit 0
+          }
+          $Config = Get-Content config\client.json -Raw | ConvertFrom-Json
+          $Version = $Config.version
+          $Tag = "v$Version"
+          $Repo = $Config.update_repository
+          Write-Host "Publishing Windows release $Tag to $Repo..."
+
+          gh api "repos/$Repo/commits?per_page=1" >$null 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            $ReadmeText = "# FR CODE LABS - Releases Oficiais`n`nInstaladores e atualizacoes automaticas do cliente de suporte remoto **FR CODE LABS**."
+            $ReadmeB64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($ReadmeText))
+            gh api --method PUT "repos/$Repo/contents/README.md" -f message="Initial README" -f content="$ReadmeB64" >$null
+          }
+
+          gh release view $Tag --repo $Repo 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $Tag --repo $Repo --title "FR CODE LABS $Version" --notes "Release oficial FR CODE LABS $Version (base RustDesk $($Config.upstream_tag))."
+          }
+
+          $Assets = @()
+          foreach ($File in @(
+            "dist\windows\FRCodeLabs-Windows-Full-install.exe",
+            "dist\windows\FRCodeLabs-Windows-QS.exe",
+            "dist\windows\FRCodeLabs-$Version-install.exe",
+            "dist\windows\FRCodeLabsQS-$Version.exe",
+            "dist\FRCodeLabs-$Version-source.zip",
+            "dist\SHA256SUMS.txt",
+            "dist\release-manifest.json"
+          )) {
+            if (Test-Path -LiteralPath $File) {
+              $Name = Split-Path $File -Leaf
+              $Assets += "${File}#${Name} - ${Tag}"
+            }
+          }
+          gh release upload $Tag @Assets --repo $Repo --clobber

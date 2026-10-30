@@ -1,0 +1,21 @@
+{
+  "name": "FR CODE LABS",
+  "full_name": "FR CODE LABS",
+  "qs_name": "FR CODE LABS QS",
+  "company": "FR CODE LABS",
+  "concept": "Identidade visual moderna com fitas entrelaçadas em gradiente azul, ciano e turquesa, transmitindo tecnologia ágil e suporte remoto seguro.",
+  "palette": {
+    "blue": "#306BEB",
+    "turquoise": "#06D0D7",
+    "cyan": "#04B1D6",
+    "light_cyan": "#B1D9D6",
+    "graphite": "#111827",
+    "surface": "#1F2937",
+    "text": "#F9FAFB",
+    "success": "#059669"
+  },
+  "typography": "Assinatura visual em sans-serif geométrica; tipografia Flutter na interface",
+  "symbol": "cf-link-symbol.png",
+  "windows_icon": "cf-link.ico",
+  "wordmark": "cf-link-wordmark.png"
+}
