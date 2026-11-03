@@ -6,6 +6,9 @@ cd "$task_root"
 
 if command -v apt-get >/dev/null 2>&1; then
   sudo apt-get update -y
+  # GitHub Actions Ubuntu runners pre-install LLVM's libunwind-*-dev (e.g. libunwind-14-dev),
+  # which conflicts with standard libunwind-dev required by libgstreamer1.0-dev.
+  sudo apt-get remove -y 'libunwind-[0-9]*-dev' 2>/dev/null || true
   sudo apt-get install -y \
     autoconf \
     autoconf-archive \
@@ -34,6 +37,7 @@ if command -v apt-get >/dev/null 2>&1; then
     libsystemd-dev \
     libtool \
     libudev-dev \
+    libunwind-dev \
     libva-dev \
     libvdpau-dev \
     libwayland-dev \
