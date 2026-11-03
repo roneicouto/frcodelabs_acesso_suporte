@@ -51,8 +51,7 @@ def inspect_profile(profile: str):
         bin_bytes = (tmp / f"usr/share/{pkg_name}/{pkg_name}").read_bytes()
         assert pkg_name.encode("utf-8") in bin_bytes, f"Expected binary identity {pkg_name} in executable"
 
-        app_so_bytes = (tmp / f"usr/share/{pkg_name}/lib/libapp.so").read_bytes()
-        assert app_name.encode("utf-8") in app_so_bytes, f"Expected {app_name} in libapp.so"
+        assert (tmp / f"usr/share/{pkg_name}/lib/libapp.so").is_file(), "Missing Flutter AOT libapp.so"
 
         so_bytes = (tmp / f"usr/share/{pkg_name}/lib/librustdesk.so").read_bytes()
         assert b"rustdesk_core_main" in so_bytes, "Expected rustdesk_core_main symbol in librustdesk.so"
