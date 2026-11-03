@@ -106,11 +106,17 @@ python3 scripts/export-icons.py
 python3 scripts/prepare-linux-tools.py
 
 [[ -x "$VCPKG_ROOT/vcpkg" ]] || "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
-"$VCPKG_ROOT/vcpkg" install \
+if ! "$VCPKG_ROOT/vcpkg" install \
   --x-manifest-root="$task_root/config/linux-vcpkg" \
   --x-install-root="$VCPKG_ROOT/installed" \
   --triplet "$VCPKG_DEFAULT_TRIPLET" \
-  --host-triplet "$VCPKG_DEFAULT_HOST_TRIPLET"
+  --host-triplet "$VCPKG_DEFAULT_HOST_TRIPLET"; then
+  find "$VCPKG_ROOT/buildtrees" -name "*.log" | while read -r log_file; do
+    echo "=== $log_file ==="
+    tail -n 120 "$log_file" || true
+  done
+  exit 1
+fi
 
 cargo_expand_ver="$(python3 -c 'import json; print(json.load(open("config/source-lock.json"))["cargo_expand"])')"
 bridge_ver="$(python3 -c 'import json; print(json.load(open("config/source-lock.json"))["bridge_codegen"])')"

@@ -22,13 +22,6 @@ if [[ -n "$llvm_root" && -d "$llvm_root/lib" ]]; then
   export LIBCLANG_PATH="$llvm_root/lib"
 fi
 
-if command -v clang >/dev/null 2>&1; then
-  gcc_install="$(clang -v 2>&1 | sed -n 's/^Selected GCC installation: //p' | head -n1)"
-  if [[ -n "$gcc_install" && -d "$gcc_install/include" ]]; then
-    export CPATH="$gcc_install/include${CPATH:+:$CPATH}"
-  fi
-fi
-
 case "$(uname -m)" in
   x86_64)
     export VCPKG_DEFAULT_TRIPLET=x64-linux
