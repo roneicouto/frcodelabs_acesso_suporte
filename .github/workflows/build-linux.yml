@@ -63,6 +63,7 @@ jobs:
             .tools/cargo/git/db
             .tools/rustup
           key: linux-tools-${{ hashFiles('config/source-lock.json', 'config/linux-vcpkg/vcpkg.json') }}
+          save-always: true
 
       - name: Run Linux Setup
         run: |

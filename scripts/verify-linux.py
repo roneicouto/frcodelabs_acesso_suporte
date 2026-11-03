@@ -48,9 +48,19 @@ def inspect_profile(profile: str):
         else:
             assert "systemctl" not in postinst, postinst
 
+        bin_bytes = (tmp / f"usr/share/{pkg_name}/{pkg_name}").read_bytes()
+        assert pkg_name.encode("utf-8") in bin_bytes, f"Expected binary identity {pkg_name} in executable"
+
+        app_so_bytes = (tmp / f"usr/share/{pkg_name}/lib/libapp.so").read_bytes()
+        assert app_name.encode("utf-8") in app_so_bytes, f"Expected {app_name} in libapp.so"
+
         so_bytes = (tmp / f"usr/share/{pkg_name}/lib/librustdesk.so").read_bytes()
-        assert app_name.encode("utf-8") in so_bytes, f"Expected embedded app_name {app_name} in librustdesk.so"
         assert b"rustdesk_core_main" in so_bytes, "Expected rustdesk_core_main symbol in librustdesk.so"
+        assert b"hide-server-settings" in so_bytes, "Expected overlay settings in librustdesk.so"
+        if profile == "qs":
+            assert b"allow-only-conn-window-open" in so_bytes, "Expected QS restriction in librustdesk.so"
+        else:
+            assert b"only connects to IDs on the company server" in so_bytes, "Expected Full connection policy in librustdesk.so"
 
     print(f"{profile}: {deb_path.name} verified (package={pkg_name}, version={version}, arch={arch})")
 
