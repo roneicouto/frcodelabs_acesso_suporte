@@ -8,10 +8,21 @@ symbol.save(ROOT / "branding/cf-link.ico", sizes=[(s, s) for s in (16, 24, 32, 4
 
 upstream = ROOT / "upstream"
 if upstream.exists():
-    for destination in ["res/icon.ico", "flutter/windows/runner/resources/app_icon.ico"]:
+    for destination in ["res/icon.ico", "res/tray-icon.ico", "flutter/windows/runner/resources/app_icon.ico"]:
         target = upstream / destination
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes((ROOT / "branding/cf-link.ico").read_bytes())
+
+    for rel_path, size in [
+        ("res/32x32.png", 32),
+        ("res/64x64.png", 64),
+        ("res/128x128.png", 128),
+        ("res/128x128@2x.png", 256),
+        ("res/icon.png", 256),
+    ]:
+        png_target = upstream / rel_path
+        png_target.parent.mkdir(parents=True, exist_ok=True)
+        symbol.resize((size, size), Image.Resampling.LANCZOS).save(png_target)
     
     icns_target = upstream / "flutter/macos/Runner/AppIcon.icns"
     icns_target.parent.mkdir(parents=True, exist_ok=True)

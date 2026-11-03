@@ -44,6 +44,12 @@ class _CfUpdateNoticeState extends State<CfUpdateNotice> {
     if (Platform.isMacOS && Abi.current() == Abi.macosArm64) {
       return widget.isQs ? 'FRCodeLabs-macOS-QS-arm64.dmg' : 'FRCodeLabs-macOS-Full-arm64.dmg';
     }
+    if (Platform.isLinux && Abi.current() == Abi.linuxX64) {
+      return widget.isQs ? 'FRCodeLabs-Linux-QS-amd64.deb' : 'FRCodeLabs-Linux-Full-amd64.deb';
+    }
+    if (Platform.isLinux && Abi.current() == Abi.linuxArm64) {
+      return widget.isQs ? 'FRCodeLabs-Linux-QS-arm64.deb' : 'FRCodeLabs-Linux-Full-arm64.deb';
+    }
     if (Platform.isAndroid && Abi.current() == Abi.androidArm64) {
       return widget.isQs ? 'FRCodeLabs-Android-QS-arm64.apk' : 'FRCodeLabs-Android-Full-arm64.apk';
     }

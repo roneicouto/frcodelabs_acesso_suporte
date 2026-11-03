@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 config = json.loads((ROOT / "config/client.json").read_text(encoding="utf-8"))
 artifacts = []
-for pattern in ["windows/*.exe", "windows/*.dmg", "android/*.apk", "macos/*.dmg", "*.zip"]:
+for pattern in ["windows/*.exe", "windows/*.dmg", "android/*.apk", "macos/*.dmg", "linux/*.deb", "*.zip"]:
     for file in sorted((ROOT / "dist").glob(pattern)):
         with file.open("rb") as stream:
             digest = hashlib.file_digest(stream, "sha256").hexdigest()

@@ -1,0 +1,117 @@
+name: Build Linux (FR CODE LABS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Perfil de compilação'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - full
+          - qs
+      publish_release:
+        description: 'Publicar automaticamente no repositório de releases (frcodelabs-releases)'
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    env:
+      FR_ID_SERVER: ${{ secrets.FR_ID_SERVER }}
+      FR_RELAY_SERVER: ${{ secrets.FR_RELAY_SERVER }}
+      FR_PUBLIC_KEY: ${{ secrets.FR_PUBLIC_KEY }}
+      FR_DEFAULT_PASSWORD: ${{ secrets.FR_DEFAULT_PASSWORD }}
+      FR_SECONDARY_PASSWORD: ${{ secrets.FR_SECONDARY_PASSWORD }}
+    steps:
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /opt/ghc /usr/local/lib/android /usr/share/dotnet
+          df -h
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache Rust, vcpkg and Cargo tools (Linux)
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tools/vcpkg
+            .tools/cargo/bin
+            .tools/cargo/registry/index
+            .tools/cargo/registry/cache
+            .tools/cargo/git/db
+            .tools/rustup
+          key: linux-tools-${{ hashFiles('config/source-lock.json', 'config/linux-vcpkg/vcpkg.json') }}
+
+      - name: Run Linux Setup
+        run: |
+          bash scripts/setup-linux.sh
+
+      - name: Build Linux Debian Packages (.deb)
+        run: |
+          bash scripts/build-linux.sh ${{ github.event.inputs.profile || 'both' }}
+
+      - name: Verify Linux Packages
+        run: |
+          python3 scripts/verify-linux.py ${{ github.event.inputs.profile || 'both' }}
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fr-code-labs-linux
+          path: |
+            dist/linux/*.deb
+            dist/linux/*.sha256
+
+      - name: Publish to Public Releases Repository (frcodelabs-releases)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_release }}
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::warning::Secret RELEASES_TOKEN nao configurado; pulando publicacao automatica em frcodelabs-releases."
+            exit 0
+          fi
+          VERSION="$(python3 -c 'import json; print(json.load(open("config/client.json"))["version"])')"
+          UPSTREAM_TAG="$(python3 -c 'import json; print(json.load(open("config/client.json"))["upstream_tag"])')"
+          REPO="$(python3 -c 'import json; print(json.load(open("config/client.json"))["update_repository"])')"
+          TAG="v${VERSION}"
+          echo "Publishing Linux release ${TAG} to ${REPO}..."
+
+          if ! gh api "repos/${REPO}/commits?per_page=1" >/dev/null 2>&1; then
+            README_B64="$(printf '# FR CODE LABS — Releases Oficiais\n\nInstaladores e atualizações automáticas do cliente de suporte remoto **FR CODE LABS**.\n' | base64 | tr -d '\n')"
+            gh api --method PUT "repos/${REPO}/contents/README.md" -f message="Initial README" -f content="${README_B64}" >/dev/null
+          fi
+
+          if ! gh release view "${TAG}" --repo "${REPO}" >/dev/null 2>&1; then
+            gh release create "${TAG}" --repo "${REPO}" --title "FR CODE LABS ${VERSION}" --notes "Release oficial FR CODE LABS ${VERSION} (base RustDesk ${UPSTREAM_TAG})."
+          fi
+
+          for deb in dist/linux/*.deb; do
+            if [[ -f "$deb" ]]; then
+              name="$(basename "$deb")"
+              gh release upload "${TAG}" "${deb}#${name} - ${TAG}" --repo "${REPO}" --clobber
+            fi
+          done
+

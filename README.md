@@ -5,10 +5,10 @@ Servidor ID, Relay e chave pública Ed25519 injetados em tempo de compilação v
 
 ## Perfis
 
-| Perfil | Nome Visível | Nome Interno | Realizar conexão | Receber conexão | Autorização | Windows | macOS |
-|---|---|---|---|---|---|---|---|
-| Full | **FR CODE LABS** | `FRCodeLabs` | Sim, usando IDs do servidor | Sim | Senha padrão, senha temporária de 8 dígitos ou aprovação local | Instalável (`.exe`) | App / DMG |
-| QS | **FR CODE LABS QS** | `FRCodeLabsQS` | Bloqueado no núcleo | Sim | Senha padrão, senha temporária de 8 dígitos ou aprovação local | Portátil (executável único) | App / DMG |
+| Perfil | Nome Visível | Nome Interno | Realizar conexão | Receber conexão | Autorização | Windows | macOS | Linux (Debian/Ubuntu/Mint) |
+|---|---|---|---|---|---|---|---|---|
+| Full | **FR CODE LABS** | `FRCodeLabs` | Sim, usando IDs do servidor | Sim | Senha padrão, senha temporária de 8 dígitos ou aprovação local | Instalável (`.exe`) | App / DMG | Pacote `.deb` (com serviço `systemd`) |
+| QS | **FR CODE LABS QS** | `FRCodeLabsQS` | Bloqueado no núcleo | Sim | Senha padrão, senha temporária de 8 dígitos ou aprovação local | Portátil (executável único) | App / DMG | Pacote `.deb` (sem serviço em 2º plano) |
 
 Os perfis possuem diretórios e identificadores próprios (`FRCodeLabs` e `FRCodeLabsQS`), evitando misturar preferências e serviços.
 O **Full** permite realizar e receber suporte, suporta salvar a senha nas conexões de saída ("Lembrar senha"), preserva sessões recentes/favoritos mesmo sem a pasta Documentos e monitora/repara automaticamente o serviço do Windows.
@@ -34,7 +34,9 @@ Os aplicativos **Full** e **QS** verificam atualizações exclusivamente no repo
   - `FRCodeLabs-Windows-QS.exe`
   - `FRCodeLabs-macOS-Full-arm64.dmg`
   - `FRCodeLabs-macOS-QS-arm64.dmg`
-  - `FRCodeLabs-1.0.13-source.zip`, `SHA256SUMS.txt` e `release-manifest.json`
+  - `FRCodeLabs-Linux-Full-amd64.deb`
+  - `FRCodeLabs-Linux-QS-amd64.deb`
+  - `FRCodeLabs-1.0.14-source.zip`, `SHA256SUMS.txt` e `release-manifest.json`
 
 ## Identidade Visual e Paleta
 
@@ -55,8 +57,9 @@ Os aplicativos **Full** e **QS** verificam atualizações exclusivamente no repo
 
 O repositório inclui workflows prontos do GitHub Actions em `.github/workflows/`:
 
-- `.github/workflows/build-windows.yml`: compila automaticamente no ambiente Windows x64 os executáveis `FRCodeLabs-1.0.13-install.exe` (`FRCodeLabs-Windows-Full-install.exe`) e `FRCodeLabsQS-1.0.13.exe` (`FRCodeLabs-Windows-QS.exe`).
+- `.github/workflows/build-windows.yml`: compila automaticamente no ambiente Windows x64 os executáveis `FRCodeLabs-1.0.14-install.exe` (`FRCodeLabs-Windows-Full-install.exe`) e `FRCodeLabsQS-1.0.14.exe` (`FRCodeLabs-Windows-QS.exe`).
 - `.github/workflows/build-macos.yml`: compila automaticamente no ambiente macOS os instaladores DMG e pacotes `.app` para Apple Silicon e Intel.
+- `.github/workflows/build-linux.yml`: compila automaticamente no ambiente Linux (`ubuntu-22.04` para máxima compatibilidade com Debian, Ubuntu e Linux Mint) os pacotes `.deb` `FRCodeLabs-1.0.14-amd64.deb` (`FRCodeLabs-Linux-Full-amd64.deb`) e `FRCodeLabsQS-1.0.14-amd64.deb` (`FRCodeLabs-Linux-QS-amd64.deb`).
 
 Para disparar a compilação:
 Basta acessar a aba **Actions** no GitHub e rodar o workflow desejado via `workflow_dispatch` (manualmente) ou criando uma tag/push.
@@ -86,8 +89,30 @@ bash scripts/build-macos.sh both
 ```
 
 Saídas geradas em `dist/macos/`:
-- `dist/macos/FRCodeLabs-1.0.13-<arch>.dmg` e `dist/macos/FRCodeLabs-macOS-Full-<arch>.dmg`
-- `dist/macos/FRCodeLabsQS-1.0.13-<arch>.dmg` e `dist/macos/FRCodeLabs-macOS-QS-<arch>.dmg`
+- `dist/macos/FRCodeLabs-1.0.14-<arch>.dmg` e `dist/macos/FRCodeLabs-macOS-Full-<arch>.dmg`
+- `dist/macos/FRCodeLabsQS-1.0.14-<arch>.dmg` e `dist/macos/FRCodeLabs-macOS-QS-<arch>.dmg`
+
+### Linux (Debian / Ubuntu / Linux Mint)
+
+No Debian, Ubuntu ou Linux Mint x86_64:
+
+```bash
+bash scripts/setup-linux.sh
+bash scripts/build-linux.sh both
+python3 scripts/verify-linux.py both
+```
+
+Saídas geradas em `dist/linux/`:
+- `dist/linux/FRCodeLabs-1.0.14-amd64.deb` e `dist/linux/FRCodeLabs-Linux-Full-amd64.deb`: instalador Full com serviço `frcodelabs.service` (`systemd`).
+- `dist/linux/FRCodeLabsQS-1.0.14-amd64.deb` e `dist/linux/FRCodeLabs-Linux-QS-amd64.deb`: pacote QS sem serviço em segundo plano.
+
+Para instalar no Debian / Ubuntu / Linux Mint:
+
+```bash
+sudo apt install ./dist/linux/FRCodeLabs-Linux-Full-amd64.deb
+# ou para o Quick Support:
+sudo apt install ./dist/linux/FRCodeLabs-Linux-QS-amd64.deb
+```
 
 ## Pacote de Fontes Correspondentes (Licença AGPLv3)
 

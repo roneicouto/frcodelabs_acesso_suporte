@@ -36,13 +36,14 @@ Por isso, `allow-auto-update` fica desabilitado no cliente personalizado.
 |---|---|
 | `config/client.json` | `upstream_tag` e versão própria `version`; conservar servidor e chave |
 | `config/source-lock.json` | Tag, commit, submódulo, Rust/Flutter/bridge/vcpkg, mínimo macOS e hash do engine Windows quando aplicável |
-| `config/android-vcpkg/vcpkg.json`, `config/macos-vcpkg/vcpkg.json` | Baseline e dependências de acordo com a nova base |
+| `config/android-vcpkg/vcpkg.json`, `config/macos-vcpkg/vcpkg.json`, `config/linux-vcpkg/vcpkg.json` | Baseline e dependências de acordo com a nova base |
 | `config/flutter-pubspec.lock` | Lockfile Dart resolvido com a versão compatível de Flutter da nova base |
 | `scripts/setup-windows.ps1`, `scripts/env.ps1` | Tag, versões de ferramentas, dependências e preparação do SDK privado |
 | `scripts/setup-android.ps1`, `scripts/build-android.ps1` | NDK/SDK, ferramentas de assinatura, arquitetura e `--build-number` |
 | `scripts/setup-macos.sh`, `scripts/env-macos.sh`, `scripts/build-macos.sh` | Compatibilidade Xcode, CocoaPods, LLVM e versões do lock |
-| `scripts/prepare-tools.py`, `scripts/prepare-macos-tools.py` | Patches Flutter: remover somente os que a nova base tornou desnecessários, adaptar os demais |
-| `scripts/prepare.py`, `scripts/prepare-android.py`, `scripts/prepare-macos.py` | Trechos originais procurados pelo overlay, hooks e identidade |
+| `scripts/setup-linux.sh`, `scripts/env-linux.sh`, `scripts/build-linux.sh`, `scripts/verify-linux.py` | Dependências Debian/Ubuntu/Mint, empacotamento `.deb` e serviço `systemd` |
+| `scripts/prepare-tools.py`, `scripts/prepare-macos-tools.py`, `scripts/prepare-linux-tools.py` | Patches Flutter: remover somente os que a nova base tornou desnecessários, adaptar os demais |
+| `scripts/prepare.py`, `scripts/prepare-android.py`, `scripts/prepare-macos.py`, `scripts/prepare-linux.py` | Trechos originais procurados pelo overlay, hooks e identidade |
 | `scripts/cf_link.rs` | APIs de configuração e precedência das opções na nova base |
 | `scripts/prepare-sodium.py`, `vendor/libsodium-sys` | Se a nova base ainda precisa do patch e usa a mesma versão da dependência |
 | `scripts/verify-windows.py` | Versão base esperada, hoje `1.5.0` |
